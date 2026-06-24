@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>기부: 전기를 부탁해 | AI 학교 에너지 관리 웹앱</title>
+  <style>
+    :root {
+      --bg: #f4fbf8;
+      --surface: rgba(255, 255, 255, .82);
+      --surface-strong: #ffffff;
+      --ink: #0d1b2a;
+      --muted: #607086;
+      --line: rgba(15, 118, 110, .16);
+      --green: #0f766e;
+      --green-2: #14b8a6;
+      --mint: #ccfbf1;
+      --blue: #2563eb;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --shadow: 0 24px 70px rgba(15, 76, 70, .16);
+      --shadow-soft: 0 16px 35px rgba(23, 40, 52, .10);
+      --radius: 26px;
+      --radius-sm: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(20,184,166,.23), transparent 34rem),
+        radial-gradient(circle at 82% 8%, rgba(37,99,235,.14), transparent 28rem),
+        linear-gradient(180deg, #f3fffb 0%, #f8fafc 48%, #eefdf8 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .38;
+      background-image:
+        linear-gradient(rgba(255,255,255,.36) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.36) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, #000, transparent 70%);
+      z-index: -2;
+    }
+
+    .orb {
+      position: fixed;
+      width: 28rem;
+      height: 28rem;
+      border-radius: 999px;
+      filter: blur(30px);
+      opacity: .16;
+      z-index: -1;
+      animation: float 12s ease-in-out infinite;
+    }
+    .orb.one { right: -10rem; top: 13rem; background: var(--green-2); }
+    .orb.two { left: -12rem; bottom: 4rem; background: #60a5fa; animation-delay: -5s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-28px); } }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(18px);
+      background: rgba(244, 251, 248, .76);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      max-width: var(--max);
+      margin: 0 auto;
+      min-height: 72px;
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+    }
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background:
+        radial-gradient(circle at 30% 22%, rgba(255,255,255,.46), transparent 20px),
+        linear-gradient(135deg, #0f766e, #14b8a6 58%, #84cc16);
+      box-shadow: 0 12px 28px rgba(20,184,166,.28);
+    }
+    .brand small { display: block; color: var(--muted); font-weight: 700; letter-spacing: -.01em; margin-top: 2px; }
+    .navlinks { display: flex; align-items: center; gap: 6px; }
+    .navlinks a {
+      padding: 10px 12px;
+      color: #30465c;
+      font-weight: 760;
+      font-size: 14px;
+      border-radius: 999px;
+    }
+    .navlinks a:hover { background: rgba(15, 118, 110, .08); color: var(--green); }
+    .nav-cta {
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 999px;
+      color: white;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      box-shadow: 0 12px 24px rgba(15, 118, 110, .22);
+      font-weight: 850;
+    }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 22px; }
+    .hero {
+      padding: 74px 0 38px;
+      display: grid;
+      grid-template-columns: 1.02fr .98fr;
+      gap: 40px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(15, 118, 110, .16);
+      border-radius: 999px;
+      background: rgba(255,255,255,.65);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 12px 24px rgba(15, 76, 70, .07);
+    }
+    h1 {
+      margin: 22px 0 16px;
+      font-size: clamp(44px, 7vw, 86px);
+      line-height: .94;
+      letter-spacing: -.08em;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #0f766e 0%, #14b8a6 42%, #2563eb 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .lead {
+      margin: 0;
+      color: #46596d;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.7;
+      max-width: 650px;
+      word-break: keep-all;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 118, 110, .18);
+      background: rgba(255,255,255,.75);
+      color: #15324a;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 12px 26px rgba(23, 40, 52, .08);
+    }
+    .btn.primary { color: white; border: 0; background: linear-gradient(135deg, var(--green), var(--green-2)); }
+    .btn:hover { transform: translateY(-1px); transition: .18s ease; }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 30px;
+      max-width: 610px;
+    }
+    .metric {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .74);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 30px rgba(23,40,52,.07);
+    }
+    .metric b { display: block; font-size: 26px; letter-spacing: -.04em; }
+    .metric span { color: var(--muted); font-size: 13px; font-weight: 760; }
+
+    .phone-shell {
+      position: relative;
+      max-width: 430px;
+      margin: 0 auto;
+      border-radius: 42px;
+      padding: 14px;
+      background: linear-gradient(145deg, rgba(13,27,42,.92), rgba(25, 55, 67, .84));
+      box-shadow: 0 36px 90px rgba(13,27,42,.28);
+      transform: rotate(1.2deg);
+    }
+    .phone-shell:before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 112px;
+      height: 23px;
+      border-radius: 999px;
+      background: #0f172a;
+      z-index: 2;
+    }
+    .phone-screen {
+      min-height: 630px;
+      overflow: hidden;
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, #ecfffb, #ffffff 45%, #f7fafc);
+      padding: 35px 18px 20px;
+      border: 1px solid rgba(255,255,255,.6);
+    }
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .status-row strong { font-size: 19px; letter-spacing: -.04em; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .app-card {
+      border-radius: 24px;
+      padding: 17px;
+      background: white;
+      border: 1px solid rgba(15,118,110,.10);
+      box-shadow: 0 14px 26px rgba(15,76,70,.09);
+      margin-bottom: 14px;
+    }
+    .app-card.dark {
+      color: white;
+      background:
+        radial-gradient(circle at 88% 6%, rgba(255,255,255,.22), transparent 70px),
+        linear-gradient(135deg, #0f766e, #14b8a6);
+      border: 0;
+    }
+    .app-card .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .big-temp { font-size: 52px; font-weight: 950; letter-spacing: -.07em; line-height: 1; }
+    .small { color: rgba(255,255,255,.78); font-weight: 750; font-size: 13px; }
+    .room-list { display: grid; gap: 10px; }
+    .room-mini {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #eef2f7;
+    }
+    .room-mini b { font-size: 14px; }
+    .room-mini span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .device-icons { display: flex; gap: 6px; }
+    .device-icons i { font-style: normal; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 10px; background: #ecfeff; }
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: #d1fae5;
+      box-shadow: inset 0 0 0 1px rgba(15,118,110,.10);
+    }
+    .toggle:after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      top: 3px;
+      right: 3px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 4px 10px rgba(15,118,110,.25);
+    }
+
+    section { padding: 72px 0; }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+    .section-head h2 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.06;
+      letter-spacing: -.06em;
+    }
+    .section-head p {
+      margin: 0;
+      max-width: 410px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 650;
+      word-break: keep-all;
+    }
+
+    .grid { display: grid; gap: 18px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(16px);
+    }
+    .card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(20,184,166,.10), transparent 130px);
+      pointer-events: none;
+    }
+    .card > * { position: relative; }
+    .icon {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: #ecfeff;
+      color: var(--green);
+      font-size: 24px;
+      margin-bottom: 18px;
+    }
+    .card h3 { margin: 0 0 10px; font-size: 22px; letter-spacing: -.04em; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.72; font-weight: 600; word-break: keep-all; }
+    .stat-card {
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .stat-card b { display: block; font-size: clamp(38px, 5vw, 64px); line-height: 1; letter-spacing: -.08em; color: var(--green); }
+    .stat-card small { display: block; margin-top: 8px; color: var(--muted); line-height: 1.6; font-weight: 700; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .panel {
+      border-radius: 32px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      overflow: hidden;
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .panel-head h3 { margin: 0; font-size: 24px; letter-spacing: -.04em; }
+    .select-tabs { display: flex; gap: 7px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid rgba(15,118,110,.14);
+      border-radius: 999px;
+      padding: 9px 12px;
+      background: #fff;
+      color: #345;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .tab.active { color: white; background: var(--green); border-color: transparent; }
+    .rooms { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .room-card {
+      border-radius: 24px;
+      padding: 18px;
+      background: #f8fafc;
+      border: 1px solid #e8f2ef;
+    }
+    .room-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; }
+    .room-title b { display: block; font-size: 18px; letter-spacing: -.035em; }
+    .room-title span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+    .badge.empty { color: #0f766e; background: #ccfbf1; }
+    .badge.use { color: #1d4ed8; background: #dbeafe; }
+    .badge.alert { color: #a16207; background: #fef3c7; }
+    .device-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+    .device {
+      border-radius: 16px;
+      padding: 10px;
+      background: white;
+      border: 1px solid #edf2f7;
+      min-height: 74px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .device strong { font-size: 13px; }
+    .device span { color: var(--muted); font-size: 12px; font-weight: 750; }
+
+    .ai-box {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background:
+        radial-gradient(circle at top right, rgba(20,184,166,.18), transparent 160px),
+        #ffffff;
+    }
+    .recommend {
+      border-radius: 26px;
+      padding: 22px;
+      color: white;
+      background:
+        radial-gradient(circle at 90% 0%, rgba(255,255,255,.23), transparent 90px),
+        linear-gradient(135deg, #0f766e, #0891b2);
+      box-shadow: 0 16px 30px rgba(15,118,110,.22);
+    }
+    .recommend .temp { font-size: 76px; font-weight: 950; letter-spacing: -.09em; line-height: 1; }
+    .recommend p { color: rgba(255,255,255,.82); margin: 10px 0 0; line-height: 1.65; font-weight: 650; }
+    .rule-list { display: grid; gap: 10px; }
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+      color: #334155;
+      font-weight: 780;
+      line-height: 1.45;
+    }
+    .check {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--green-2);
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .flow:before {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 46px;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(15,118,110,.1), rgba(20,184,166,.78), rgba(37,99,235,.18));
+      z-index: 0;
+    }
+    .step {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      min-height: 180px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+    }
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      font-size: 20px;
+      font-weight: 950;
+      box-shadow: 0 14px 24px rgba(15,118,110,.22);
+      margin-bottom: 16px;
+    }
+    .step h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.04em; }
+    .step p { margin: 0; color: var(--muted); line-height: 1.6; font-size: 14px; font-weight: 650; word-break: keep-all; }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .compare-card {
+      border-radius: 32px;
+      padding: 28px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+    }
+    .compare-card h3 { margin: 0 0 18px; font-size: 26px; letter-spacing: -.05em; }
+    .compare-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    .compare-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      color: #475569;
+      line-height: 1.6;
+      font-weight: 650;
+      word-break: keep-all;
+    }
+    .compare-list li:before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--green-2);
+      margin-top: 8px;
+      flex: 0 0 auto;
+    }
+    .compare-card.ai {
+      color: white;
+      background:
+        radial-gradient(circle at 88% 9%, rgba(255,255,255,.22), transparent 130px),
+        linear-gradient(135deg, #0f766e, #2563eb);
+      border: 0;
+    }
+    .compare-card.ai .compare-list li { color: rgba(255,255,255,.84); }
+    .compare-card.ai .compare-list li:before { background: #bef264; }
+
+    .impact-card {
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .impact-card .topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .impact-card .topline span { font-size: 38px; }
+    .impact-card h3 { font-size: 26px; }
+    .impact-card ul { padding-left: 20px; margin: 16px 0 0; color: var(--muted); line-height: 1.8; font-weight: 650; }
+
+    .prototype {
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .screen-card {
+      border-radius: 32px;
+      background: #0f172a;
+      color: white;
+      padding: 22px;
+      box-shadow: 0 28px 70px rgba(15,23,42,.28);
+      overflow: hidden;
+      position: relative;
+    }
+    .screen-card:after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -70px;
+      top: -70px;
+      border-radius: 999px;
+      background: rgba(20,184,166,.22);
+      filter: blur(4px);
+    }
+    .screen-card > * { position: relative; z-index: 1; }
+    .screen-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+    .dot { width: 11px; height: 11px; border-radius: 999px; background: #ef4444; }
+    .dot:nth-child(2) { background: #f59e0b; }
+    .dot:nth-child(3) { background: #22c55e; }
+    .mock-lines { display: grid; gap: 12px; }
+    .mock-line {
+      height: 54px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      color: rgba(255,255,255,.82);
+      font-weight: 800;
+    }
+    .progress {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      overflow: hidden;
+      width: 44%;
+    }
+    .progress i { display: block; height: 100%; width: 72%; border-radius: inherit; background: var(--green-2); }
+    .cta-panel {
+      border-radius: 34px;
+      padding: 32px;
+      background:
+        radial-gradient(circle at right top, rgba(20,184,166,.16), transparent 170px),
+        rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .cta-panel h2 { margin: 0 0 14px; font-size: clamp(30px,4vw,50px); letter-spacing: -.06em; line-height: 1.1; }
+    .cta-panel p { margin: 0; color: var(--muted); line-height: 1.75; font-weight: 650; word-break: keep-all; }
+    .todo { margin-top: 22px; display: grid; gap: 10px; }
+    .todo label {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #e8eef5;
+      color: #334155;
+      font-weight: 780;
+    }
+    .todo input { accent-color: var(--green); width: 18px; height: 18px; }
+
+    footer {
+      padding: 42px 0 58px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 24px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      background: #0f172a;
+      color: white;
+      border-radius: 999px;
+      padding: 13px 18px;
+      box-shadow: 0 18px 45px rgba(15,23,42,.28);
+      z-index: 100;
+      font-weight: 850;
+      transition: .25s ease;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 980px) {
+      .hero, .dashboard, .prototype { grid-template-columns: 1fr; }
+      .hero { padding-top: 46px; }
+      .phone-shell { max-width: 390px; }
+      .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .flow:before { display: none; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+    @media (max-width: 720px) {
+      .nav { min-height: 64px; }
+      .brand small, .navlinks { display: none; }
+      .nav-cta { padding: 10px 13px; font-size: 13px; }
+      .hero-metrics, .grid.cols-3, .grid.cols-4, .grid.cols-2, .rooms, .compare { grid-template-columns: 1fr; }
+      section { padding: 52px 0; }
+      .panel, .cta-panel { padding: 18px; border-radius: 26px; }
+      .phone-screen { min-height: 560px; }
+      .device-row { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      h1 { letter-spacing: -.07em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+
+  <header class="topbar">
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#top" class="brand" aria-label="기부 홈으로 이동">
+        <span class="logo">⚡</span>
+        <span>기부<small>전기를 부탁해</small></span>
+      </a>
+      <div class="navlinks">
+        <a href="#problem">문제</a>
+        <a href="#dashboard">대시보드</a>
+        <a href="#flow">작동 흐름</a>
+        <a href="#impact">기대 효과</a>
+      </div>
+      <button class="nav-cta" data-scroll="#dashboard">앱 미리보기</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <span class="eyebrow">🌱 AI · IoT 학교 에너지 관리 서비스</span>
+        <h1>빈 교실 전기,<br><span class="gradient-text">AI가 부탁받고 줄입니다.</span></h1>
+        <p class="lead">
+          기부는 시간표, 교실 온습도, 날씨 데이터를 분석해 빈 교실의 불필요한 전력 사용을 줄이는 스마트 학교 에너지 관리 웹앱입니다. 전등과 전자칠판은 규칙으로 끄고, 냉난방은 AI가 다음 수업의 쾌적함까지 고려해 절전 온도를 추천합니다.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#dashboard">실시간 대시보드 보기</a>
+          <a class="btn" href="#flow">작동 방식 보기</a>
+        </div>
+        <div class="hero-metrics" aria-label="핵심 수치">
+          <div class="metric"><b>45.1%</b><span>학교 건물 절감 가능성 사례</span></div>
+          <div class="metric"><b>34%</b><span>재실감지 기반 절감 실험</span></div>
+          <div class="metric"><b>0명</b><span>개인 위치·카메라 수집</span></div>
+        </div>
+      </div>
+
+      <aside class="phone-shell" aria-label="기부 모바일 앱 미리보기">
+        <div class="phone-screen">
+          <div class="status-row">
+            <strong>오늘의 학교 에너지</strong>
+            <span class="pill">● 안전 모드</span>
+          </div>
+          <div class="app-card dark">
+            <div class="row">
+              <div>
+                <span class="small">AI 추천 절전 온도</span>
+                <div class="big-temp">27°</div>
+              </div>
+              <div style="text-align:right">
+                <span class="small">다음 수업까지</span><br>
+                <strong style="font-size:28px">35분</strong>
+              </div>
+            </div>
+            <p class="small" style="margin:16px 0 0">실내 25.4° · 습도 54% · 외부 더움 → 냉방 과사용 방지</p>
+          </div>
+          <div class="app-card">
+            <div class="row" style="margin-bottom:12px">
+              <strong>교실 제어 상태</strong>
+              <span style="color:var(--green);font-weight:900;font-size:13px">3개 교실 절전 중</span>
+            </div>
+            <div class="room-list">
+              <div class="room-mini">
+                <div><b>3-2 교실</b><span>빈 교실 · 자동 절전</span></div>
+                <div class="device-icons"><i>💡</i><i>📺</i><i>❄️</i></div>
+              </div>
+              <div class="room-mini">
+                <div><b>과학실</b><span>수업 중 · 수동 우선</span></div>
+                <div class="toggle" aria-hidden="true"></div>
+              </div>
+              <div class="room-mini">
+                <div><b>미술실</b><span>방과 후 예약 · 대기</span></div>
+                <span class="badge alert">확인 필요</span>
+              </div>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="row"><strong>예상 절감량</strong><strong style="color:var(--green)">12.8 kWh</strong></div>
+            <div style="height:10px;background:#ecfdf5;border-radius:999px;overflow:hidden;margin-top:14px"><div style="width:68%;height:100%;background:linear-gradient(90deg,var(--green),var(--green-2));border-radius:999px"></div></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section id="problem">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>왜 학교 전기는 쉽게 낭비될까?</h2>
+          <p>교실 사용 시간이 계속 바뀌고, 사람이 모든 기기를 확인하기 어렵기 때문에 빈 교실의 전등·전자칠판·냉난방기가 켜진 채 남기 쉽습니다.</p>
+        </div>
+        <div class="grid cols-4">
+          <article class="card stat-card">
+            <div><div class="icon">🏫</div><h3>불규칙한 사용</h3></div>
+            <p>이동수업, 점심시간, 방과 후 활동 때문에 교실의 사용 여부가 계속 달라집니다.</p>
+          </article>
+          <article class="card stat-card">
+            <div><div class="icon">🚶</div><h3>수동 관리 한계</h3></div>
+            <p>많은 교실을 한 명의 관리자나 학생이 실시간으로 확인하기 어렵습니다.</p>
+          </article>
+          <article class="card stat-card">
+            <div><div class="icon">❄️</div><h3>쾌적함 고려</h3></div>
+            <p>냉난방은 무조건 끄면 다음 수업 때 불편해 상황별 판단이 필요합니다.</p>
+          </article>
+          <article class="card stat-card">
+            <div><div class="icon">🌍</div><h3>환경 손실</h3></div>
+            <p>전기요금과 교육 예산 낭비뿐 아니라 온실가스 배출 증가로 이어집니다.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>근거는 숫자로, 화면은 카드로.</h2>
+          <p>발표에서 강조하기 좋은 연구 사례 수치를 큰 카드로 배치했습니다. 단, 모든 학교에 그대로 적용되는 실제 절감률이 아니라 사례 기반 근거입니다.</p>
+        </div>
+        <div class="grid cols-3">
+          <article class="card stat-card">
+            <div>
+              <b>668,140.1</b>
+              <small>kWh · 분석 대상 학교의 연간 에너지 소비량 사례</small>
+            </div>
+            <p>학교 건물 에너지 관리 개선 가능성을 보여 주는 참고 수치입니다.</p>
+          </article>
+          <article class="card stat-card">
+            <div>
+              <b>45.1%</b>
+              <small>냉·난방 설정온도 조정 및 고효율 설비 적용 시 절감 가능성 분석</small>
+            </div>
+            <p>학교 에너지 관리가 충분히 개선될 수 있다는 발표용 핵심 근거입니다.</p>
+          </article>
+          <article class="card stat-card">
+            <div>
+              <b>34%</b>
+              <small>재실감지 센서와 스마트 플러그 기반 절감 실험</small>
+            </div>
+            <p>빈 공간의 불필요한 전력을 차단하는 아이디어의 가능성을 보여 줍니다.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>관리자와 학급 담당 학생이 보는 화면</h2>
+          <p>실제 기기 제어가 아닌 정적 데모지만, 발표용으로 앱이 작동하는 느낌이 나도록 교실 상태와 AI 추천 카드를 구성했습니다.</p>
+        </div>
+        <div class="dashboard">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>교실 현황</h3>
+              <div class="select-tabs" role="tablist" aria-label="교실 필터">
+                <button class="tab active" data-filter="all">전체</button>
+                <button class="tab" data-filter="empty">빈 교실</button>
+                <button class="tab" data-filter="use">사용 중</button>
+                <button class="tab" data-filter="alert">확인 필요</button>
+              </div>
+            </div>
+            <div class="rooms" id="rooms">
+              <article class="room-card" data-status="empty">
+                <div class="room-top"><div class="room-title"><b>3-2 교실</b><span>다음 수업까지 35분</span></div><span class="badge empty">절전 중</span></div>
+                <div class="device-row"><div class="device"><strong>💡 전등</strong><span>OFF</span></div><div class="device"><strong>📺 전자칠판</strong><span>OFF</span></div><div class="device"><strong>❄️ 냉방</strong><span>27° 추천</span></div></div>
+              </article>
+              <article class="room-card" data-status="use">
+                <div class="room-top"><div class="room-title"><b>과학실</b><span>현재 수업 중</span></div><span class="badge use">수동 우선</span></div>
+                <div class="device-row"><div class="device"><strong>💡 전등</strong><span>ON</span></div><div class="device"><strong>📺 전자칠판</strong><span>ON</span></div><div class="device"><strong>🌡️ 냉난방</strong><span>26° 유지</span></div></div>
+              </article>
+              <article class="room-card" data-status="empty">
+                <div class="room-top"><div class="room-title"><b>영어실</b><span>점심시간 · 예약 없음</span></div><span class="badge empty">자동 종료</span></div>
+                <div class="device-row"><div class="device"><strong>💡 전등</strong><span>OFF</span></div><div class="device"><strong>📺 전자칠판</strong><span>OFF</span></div><div class="device"><strong>🌬️ 환기</strong><span>권장</span></div></div>
+              </article>
+              <article class="room-card" data-status="alert">
+                <div class="room-top"><div class="room-title"><b>미술실</b><span>방과 후 사용 예정</span></div><span class="badge alert">확인 필요</span></div>
+                <div class="device-row"><div class="device"><strong>💡 전등</strong><span>ON 감지</span></div><div class="device"><strong>📺 전자칠판</strong><span>대기</span></div><div class="device"><strong>🔥 난방</strong><span>기본값</span></div></div>
+              </article>
+            </div>
+          </div>
+
+          <aside class="panel ai-box">
+            <div class="panel-head"><h3>AI 추천</h3><span class="pill">검증 통과</span></div>
+            <div class="recommend">
+              <span>3-2 교실 냉방 설정</span>
+              <div class="temp">27°</div>
+              <p>외부 날씨가 덥고 다음 수업까지 35분이 남아 있습니다. 쾌적함을 크게 해치지 않는 범위에서 설정 온도를 높여 전력 사용을 줄입니다.</p>
+            </div>
+            <div class="rule-list">
+              <div class="rule"><span class="check">✓</span>관리자 허용 범위 24°~28° 안에 있음</div>
+              <div class="rule"><span class="check">✓</span>카메라·개인 위치 정보 없이 교실 단위 데이터만 사용</div>
+              <div class="rule"><span class="check">✓</span>학생·교직원 수동 조작을 자동 제어보다 우선</div>
+            </div>
+            <button class="btn primary" id="demoAction" style="width:100%;margin-top:auto">데모 제어 실행</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>데이터 수집부터 절감 기록까지 5단계</h2>
+          <p>시간표 기반 자동화와 AI 추천을 분리해 설명하면 “AI가 꼭 필요한 부분”이 더 명확해집니다.</p>
+        </div>
+        <div class="flow">
+          <article class="step"><div class="step-num">1</div><h3>데이터 수집</h3><p>시간표, 날씨, 실내 온습도, 기기 상태를 모읍니다.</p></article>
+          <article class="step"><div class="step-num">2</div><h3>빈 교실 판단</h3><p>서버가 현재 교실이 사용 중인지 규칙으로 확인합니다.</p></article>
+          <article class="step"><div class="step-num">3</div><h3>AI 온도 추천</h3><p>다음 수업까지 남은 시간과 온도 변화를 분석합니다.</p></article>
+          <article class="step"><div class="step-num">4</div><h3>안전 검증</h3><p>허용 온도 범위를 벗어나면 기본 절전값을 사용합니다.</p></article>
+          <article class="step"><div class="step-num">5</div><h3>제어·기록</h3><p>IoT 기기에 적용하고 절감 결과를 웹앱에 표시합니다.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <h2>일반 자동화와 AI의 역할을 분명하게</h2>
+          <p>심사나 발표 질문에서 “시간표면 AI가 필요 없는 것 아닌가요?”라는 질문에 바로 답할 수 있는 구성입니다.</p>
+        </div>
+        <div class="compare">
+          <article class="compare-card">
+            <h3>일반 자동화</h3>
+            <ul class="compare-list">
+              <li>시간표로 빈 교실인지 확인</li>
+              <li>빈 교실의 전등·전자칠판 끄기</li>
+              <li>관리자가 정한 기본 규칙 적용</li>
+              <li>오류 발생 시 최근 정상 데이터와 기본 동작 사용</li>
+            </ul>
+          </article>
+          <article class="compare-card ai">
+            <h3>AI가 맡는 판단</h3>
+            <ul class="compare-list">
+              <li>날씨와 온습도를 바탕으로 온도 변화 예측</li>
+              <li>다음 수업 쾌적함을 고려한 절전 온도 추천</li>
+              <li>추천 이유를 설명 가능한 문장으로 제시</li>
+              <li>사용 기록과 절감 결과를 분석해 판단 개선</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="impact">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>개인·사회·환경에 생기는 효과</h2>
+          <p>발표 마지막 장에 바로 넣기 좋은 형태로 기대 효과와 검증 방법을 나눠 정리했습니다.</p>
+        </div>
+        <div class="grid cols-3">
+          <article class="card impact-card">
+            <div><div class="topline"><h3>개인</h3><span>🙋</span></div><p>학생과 교직원이 빈 교실의 기기를 매번 확인해야 하는 불편을 줄입니다.</p></div>
+            <ul><li>관리 부담 감소</li><li>다음 수업 쾌적함 유지</li><li>학급별 절감 참여</li></ul>
+          </article>
+          <article class="card impact-card">
+            <div><div class="topline"><h3>사회</h3><span>🏫</span></div><p>학교 전기요금과 교육 예산 낭비를 줄이고, 여러 학교로 확장할 수 있습니다.</p></div>
+            <ul><li>교육 예산 효율화</li><li>전력 피크 부담 완화</li><li>AI 문제 해결 경험</li></ul>
+          </article>
+          <article class="card impact-card">
+            <div><div class="topline"><h3>환경</h3><span>🌿</span></div><p>불필요한 전력 소비와 발전 과정에서 발생하는 온실가스 배출을 줄입니다.</p></div>
+            <ul><li>탄소중립 실천</li><li>낭비 전력 감소</li><li>학교 에너지 문화 개선</li></ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap prototype">
+        <div class="screen-card" aria-label="프로토타입 검증 화면">
+          <div class="screen-toolbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <h2 style="margin:0 0 10px;font-size:34px;letter-spacing:-.06em">검증 리포트</h2>
+          <p style="margin:0 0 22px;color:rgba(255,255,255,.72);line-height:1.7">실제 도입 전에는 한 교실에서 저비용 프로토타입으로 먼저 효과를 측정합니다.</p>
+          <div class="mock-lines">
+            <div class="mock-line"><span>기기 작동 시간 비교</span><div class="progress"><i></i></div></div>
+            <div class="mock-line"><span>예상 절감량 계산</span><div class="progress"><i style="width:58%"></i></div></div>
+            <div class="mock-line"><span>쾌적도 설문 확인</span><div class="progress"><i style="width:82%"></i></div></div>
+            <div class="mock-line"><span>오류·수동조작 기록</span><div class="progress"><i style="width:46%"></i></div></div>
+          </div>
+        </div>
+        <div class="cta-panel">
+          <span class="eyebrow">📌 발표 전 체크리스트</span>
+          <h2>실제로 하지 않은 것은 했다고 말하지 않기</h2>
+          <p>자료의 신뢰도를 높이려면 연구 자료와 직접 조사 계획을 구분해 말해야 합니다. 관찰, 설문, 인터뷰, 프로토타입은 진행한 범위만 발표하고, 미진행 항목은 “추가 검증 계획”으로 표현하세요.</p>
+          <div class="todo">
+            <label><input type="checkbox" checked> 45.1%와 34%는 연구 사례라고 설명</label>
+            <label><input type="checkbox" checked> AI 오류 검증과 수동 제어 우선 원칙 포함</label>
+            <label><input type="checkbox"> 3일간 빈 교실 관찰 기록 추가</label>
+            <label><input type="checkbox"> 시설 관리자 또는 선생님 인터뷰 추가</label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div>
+        <strong style="color:#15324a">기부: 전기를 부탁해</strong><br>
+        <span>AI로 빈 교실의 전력 낭비를 줄이는 스마트 학교 에너지 관리 정적 웹앱</span>
+      </div>
+      <div>팀원: 3317 최지아 · 3318 허은 · 3327 서원겸</div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast">데모 제어가 실행되었습니다. 실제 기기는 연결되어 있지 않습니다.</div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const rooms = document.querySelectorAll('.room-card');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const filter = tab.dataset.filter;
+        rooms.forEach(room => {
+          room.style.display = filter === 'all' || room.dataset.status === filter ? '' : 'none';
+        });
+      });
+    });
+
+    document.querySelectorAll('[data-scroll]').forEach(btn => {
+      btn.addEventListener('click', () => document.querySelector(btn.dataset.scroll).scrollIntoView({ behavior: 'smooth' }));
+    });
+
+    const toast = document.getElementById('toast');
+    document.getElementById('demoAction').addEventListener('click', () => {
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    });
+  </script>
+</body>
+</html>
